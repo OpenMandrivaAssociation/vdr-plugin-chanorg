@@ -13,6 +13,7 @@ License:	GPL
 URL:		http://www.freewebs.com/sadhome/
 Source:		http://www.freewebs.com/sadhome/Plugin/Channelswitcher/vdr-%plugin-%version.tar.bz2
 Patch1:		http://deela.cc.fh-lippe.de/files/vdr-chanorg/chanorg-0.0.6.patch
+BuildRoot:	%{_tmppath}/%{name}-buildroot
 BuildRequires:	vdr-devel >= 1.4.1-6
 Requires:	vdr-abi = %vdr_abi
 
