@@ -1,0 +1,1058 @@
+
+This is a semi-automatically created i18n adaptation patch and may contain
+errors (such as missing translations). This should only be used as a
+temporary measure until the upstream plugin maintainer fixes the plugin
+properly according to the instructions in i18n-to-gettext.pl.
+
+Created for Mandriva Linux packaging by Anssi Hannula <anssi@mandriva.org>.
+
+
+Index: chanorg-0.0.6/Makefile
+===================================================================
+--- chanorg-0.0.6/Makefile
++++ chanorg-0.0.6/Makefile	2008-04-22 18:37:14.000000000 +0300
+@@ -46,7 +46,7 @@
+ 
+ ### The object files (add further files here):
+ 
+-OBJS = $(PLUGIN).o chan-menu.o i18n.o
++OBJS = $(PLUGIN).o chan-menu.o 
+ 
+ ### Implicit rules:
+ 
+@@ -62,9 +62,34 @@
+ 
+ -include $(DEPFILE)
+ 
++### Internationalization (I18N):
++
++PODIR     = po
++LOCALEDIR = $(VDRDIR)/locale
++I18Npo    = $(wildcard $(PODIR)/*.po)
++I18Nmsgs  = $(addprefix $(LOCALEDIR)/, $(addsuffix /LC_MESSAGES/vdr-$(PLUGIN).mo, $(notdir $(foreach file, $(I18Npo), $(basename $(file))))))
++I18Npot   = $(PODIR)/$(PLUGIN).pot
++
++%.mo: %.po
++	msgfmt -c -o $@ $<
++
++$(I18Npot): $(wildcard *.[ch] *.[ch]xx *.cc *.[ch]pp *.hh)
++	xgettext -C -cTRANSLATORS --no-wrap --no-location -k -ktr -ktrNOOP --msgid-bugs-address='<http://qa.mandriva.com/>' -o $@ $^
++
++%.po: $(I18Npot)
++	msgmerge -U --no-wrap --no-location --backup=none -q $@ $<
++	@touch $@
++
++$(I18Nmsgs): $(LOCALEDIR)/%/LC_MESSAGES/vdr-$(PLUGIN).mo: $(PODIR)/%.mo
++	@mkdir -p $(dir $@)
++	cp $< $@
++
++.PHONY: i18n
++i18n: $(I18Nmsgs)
++
+ ### Targets:
+ 
+-all: libvdr-$(PLUGIN).so
++all: libvdr-$(PLUGIN).so i18n
+ 
+ libvdr-$(PLUGIN).so: $(OBJS)
+ 	$(CXX) $(CXXFLAGS) -shared $(OBJS) -o $@
+@@ -79,4 +104,5 @@
+ 	@echo Distribution package created as $(PACKAGE).tgz
+ 
+ clean:
++	@-rm -f $(PODIR)/*.mo $(PODIR)/*.pot
+ 	@-rm -f $(OBJS) $(DEPFILE) *.so *.tgz core* *~
+Index: chanorg-0.0.6/chan-menu.h
+===================================================================
+--- chanorg-0.0.6/chan-menu.h
++++ chanorg-0.0.6/chan-menu.h	2008-04-22 18:37:14.000000000 +0300
+@@ -2,7 +2,7 @@
+ #define __CHANMENU_H
+ #include <vdr/plugin.h>
+ #include <vdr/menu.h>
+-#include "i18n.h"
++
+ class cGroupMove : public cOsdMenu
+ {
+ 	private:
+Index: chanorg-0.0.6/chanorg.c
+===================================================================
+--- chanorg-0.0.6/chanorg.c
++++ chanorg-0.0.6/chanorg.c	2008-04-22 18:37:14.000000000 +0300
+@@ -24,7 +24,7 @@
+ 
+ bool cPluginChanOrg::Initialize(void)
+ {
+-	RegisterI18n(Phrases);
++	
+ 	return true;
+ }
+ 
+Index: chanorg-0.0.6/i18n.c
+===================================================================
+--- chanorg-0.0.6/i18n.c
++++ chanorg-0.0.6/i18n.c	2008-04-22 18:37:14.000000000 +0300
+@@ -1,462 +0,0 @@
+-#include "i18n.h"
+-
+-const tI18nPhrase Phrases[] = {
+-  {
+-    "Channels Organizer",
+-    "Kanalverwaltung",
+-    "",
+-    "Organizza Canali",
+-    "",
+-    "",
+-    "Organisateur Chaines",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Редактор каналов",
+-    "",
+-  },
+-  { "Select Group for",
+-    "Wфhlen",
+-    "",
+-    "Seleziona grp",
+-    "",
+-    "",
+-    "Choix du groupe pour",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Выбор группы",
+-    "",
+-  },
+-  { "Group",
+-    "Gruppe",
+-    "",
+-    "Gruppo",
+-    "",
+-    "",
+-    "Groupe",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Группа",
+-    "",
+-  },
+-  { "Name",
+-    "Name",
+-    "",
+-    "Nome",
+-    "",
+-    "",
+-    "Nom",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Имя",
+-    "",
+-  },
+-  { "Number",
+-    "Nummer",
+-    "",
+-    "Numero",
+-    "",
+-    "",
+-    "Numero",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Номер",
+-    "",
+-  },
+-  { "Del Group",
+-    "Lіschen",
+-    "",
+-    "Cancella grp",
+-    "",
+-    "",
+-    "Suppr Groupe",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Удал. группу",
+-    "",
+-  },
+-  { "Edit Group",
+-    "Bearbeiten",
+-    "",
+-    "Modifica grp",
+-    "",
+-    "",
+-    "Modif Groupe",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Ред. группу",
+-    "",
+-  },
+-  { "Sort Group",
+-    "Sortieren",
+-    "",
+-    "Ordina grp",
+-    "",
+-    "",
+-    "Tri Group",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Сорт. группу",
+-    "",
+-  },
+-  { "Move",
+-    "Verschieben",
+-    "",
+-    "Muovi",
+-    "",
+-    "",
+-    "Deplacer",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Переместить",
+-    "",
+-  },
+-  { "Add Group",
+-    "Hinzufќgen",
+-    "",
+-    "Aggiungi grp",
+-    "",
+-    "",
+-    "Creer Groupe",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Новая группа",
+-    "",
+-  },
+-  { "Affect",
+-    "Zuweisen",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Affecter",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Применить",
+-    "",
+-  },
+-  { "Zap",
+-    "Umschalten",
+-    "",
+-    "Vedi canale",
+-    "",
+-    "",
+-    "Zap",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Переключить",
+-    "",
+-  },
+-  { "Cancel",
+-    "Abbrechen",
+-    "",
+-    "Cancella",
+-    "",
+-    "",
+-    "Annuler",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Отменить",
+-    "",
+-  },
+-  { "Before",
+-    "Davor",
+-    "",
+-    "In su",
+-    "",
+-    "",
+-    "Avant",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Перед",
+-    "",
+-  },
+-  { "After",
+-    "Dahinter",
+-    "",
+-    "In giu'",
+-    "",
+-    "",
+-    "Apres",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "После",
+-    "",
+-  },
+-  { "Sorting",
+-    "Sortieren",
+-    "",
+-    "Ordinamento",
+-    "",
+-    "",
+-    "Tri en cours",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Сортировка",
+-    "",
+-  },
+-  { "Sort done",
+-    "Sortieren beendet",
+-    "",
+-    "Ordinamento completato",
+-    "",
+-    "",
+-    "Tri termine",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Сортировка окончена",
+-    "",
+-  },
+-   { "Move before group",
+-    "Verschiebe vor Gruppe",
+-    "",
+-    "Muovi in su il gruppo",
+-    "",
+-    "",
+-    "Deplacer avant groupe",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Поместить перед группой",
+-    "",
+-  },
+-   { ":End",
+-    ":Ende",
+-    "",
+-    ":Fine",
+-    "",
+-    "",
+-    ":Fin",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    ":Конец",
+-    "",
+-  },
+-   { "Alpha Up",
+-    "Alpha auf",
+-    "",
+-    "Alpha su",
+-    "",
+-    "",
+-    "Alpha Croiss",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Алфавит возр.",
+-    "",
+-  },
+-   { "Alpha Down",
+-    "Alpha ab",
+-    "",
+-    "Alpha giu'",
+-    "",
+-    "",
+-    "Alpha Dec",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Алфавит убыв.",
+-    "",
+-  },
+-   { "Transp Up",
+-    "Transp auf",
+-    "",
+-    "Transp su",
+-    "",
+-    "",
+-    "Transp Croiss",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Трансп. возр.",
+-    "",
+-  },
+-   { "Transp Down",
+-    "Transp ab",
+-    "",
+-    "Transp giu'",
+-    "",
+-    "",
+-    "Transp Dec",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Трансп. убыв.",
+-    "",
+-  },
+-  { "Apply Changes?",
+-  "Фnderungen speichern?",
+-  "",
+-  "Applica cambiamenti?",
+-  "",
+-  "",
+-  "Appliquer les changements?",
+-  "",
+-  "",
+-  "",
+-  "",
+-  "",
+-    "",
+-    "",
+-    "",
+-    "",
+-    "Применить изменения?",
+-    "",
+-  },
+-  { NULL }
+-};
+Index: chanorg-0.0.6/i18n.h
+===================================================================
+--- chanorg-0.0.6/i18n.h
++++ chanorg-0.0.6/i18n.h	2008-04-22 18:37:14.000000000 +0300
+@@ -1,27 +0,0 @@
+-/*
+- * Softcam plugin to VDR (C++)
+- *
+- * This code is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * as published by the Free Software Foundation; either version 2
+- * of the License, or (at your option) any later version.
+- *
+- * This code is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+- * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
+- */
+-
+-#ifndef __CHANORG_I18N_H
+-#define __CHANORG_I18N_H
+-
+-#include <vdr/i18n.h>
+-
+-extern const tI18nPhrase Phrases[];
+-
+-#endif //__I18N_H
+Index: chanorg-0.0.6/po/chanorg.pot
+===================================================================
+--- chanorg-0.0.6/po/chanorg.pot
++++ chanorg-0.0.6/po/chanorg.pot	2008-04-22 18:37:14.000000000 +0300
+@@ -0,0 +1,113 @@
++# SOME DESCRIPTIVE TITLE.
++# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the PACKAGE package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++#, fuzzy
++msgid ""
++msgstr ""
++"Project-Id-Version: PACKAGE VERSION\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-22 18:37+0300\n"
++"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: LANGUAGE <LL@li.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=CHARSET\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: chan-menu.c:9
++msgid "Move before group"
++msgstr ""
++
++#: chan-menu.c:21 chan-menu.c:24
++msgid ":End"
++msgstr ""
++
++#: chan-menu.c:98
++msgid "Select Group for"
++msgstr ""
++
++#: chan-menu.c:155 chan-menu.c:165
++msgid "Group"
++msgstr ""
++
++#: chan-menu.c:180
++msgid "Name"
++msgstr ""
++
++#: chan-menu.c:181
++msgid "Number"
++msgstr ""
++
++#: chan-menu.c:217
++msgid "Channels Organizer"
++msgstr ""
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Add Group"
++msgstr ""
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Affect"
++msgstr ""
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Del Group"
++msgstr ""
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Edit Group"
++msgstr ""
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Move"
++msgstr ""
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Sort Group"
++msgstr ""
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Zap"
++msgstr ""
++
++#: chan-menu.c:559
++msgid "Apply Changes?"
++msgstr ""
++
++#: chan-menu.c:629
++msgid "After"
++msgstr ""
++
++#: chan-menu.c:629
++msgid "Before"
++msgstr ""
++
++#: chan-menu.c:629
++msgid "Cancel"
++msgstr ""
++
++#: chan-menu.c:636 chan-menu.c:661 chan-menu.c:687 chan-menu.c:719
++msgid "Sorting"
++msgstr ""
++
++#: chan-menu.c:638 chan-menu.c:663 chan-menu.c:689 chan-menu.c:721
++msgid "Sort done"
++msgstr ""
++
++#: chan-menu.c:698
++msgid "Alpha Down"
++msgstr ""
++
++#: chan-menu.c:698
++msgid "Alpha Up"
++msgstr ""
++
++#: chan-menu.c:698
++msgid "Transp Down"
++msgstr ""
++
++#: chan-menu.c:698
++msgid "Transp Up"
++msgstr ""
+Index: chanorg-0.0.6/po/de_DE.po
+===================================================================
+--- chanorg-0.0.6/po/de_DE.po
++++ chanorg-0.0.6/po/de_DE.po	2008-04-22 18:37:14.000000000 +0300
+@@ -0,0 +1,112 @@
++# VDR chanorg plugin language source file.
++# Copyright (C) YEAR THE VDR-chanorg'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-chanorg package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-chanorg\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-22 18:37+0300\n"
++"PO-Revision-Date: 2008-04-22 18:37+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-15\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: chan-menu.c:9
++msgid "Move before group"
++msgstr "Verschiebe vor Gruppe"
++
++#: chan-menu.c:21 chan-menu.c:24
++msgid ":End"
++msgstr ":Ende"
++
++#: chan-menu.c:98
++msgid "Select Group for"
++msgstr "Wфhlen"
++
++#: chan-menu.c:155 chan-menu.c:165
++msgid "Group"
++msgstr "Gruppe"
++
++#: chan-menu.c:180
++msgid "Name"
++msgstr "Name"
++
++#: chan-menu.c:181
++msgid "Number"
++msgstr "Nummer"
++
++#: chan-menu.c:217
++msgid "Channels Organizer"
++msgstr "Kanalverwaltung"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Add Group"
++msgstr "Hinzufќgen"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Affect"
++msgstr "Zuweisen"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Del Group"
++msgstr "Lіschen"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Edit Group"
++msgstr "Bearbeiten"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Move"
++msgstr "Verschieben"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Sort Group"
++msgstr "Sortieren"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Zap"
++msgstr "Umschalten"
++
++#: chan-menu.c:559
++msgid "Apply Changes?"
++msgstr "Фnderungen speichern?"
++
++#: chan-menu.c:629
++msgid "After"
++msgstr "Dahinter"
++
++#: chan-menu.c:629
++msgid "Before"
++msgstr "Davor"
++
++#: chan-menu.c:629
++msgid "Cancel"
++msgstr "Abbrechen"
++
++#: chan-menu.c:636 chan-menu.c:661 chan-menu.c:687 chan-menu.c:719
++msgid "Sorting"
++msgstr "Sortieren"
++
++#: chan-menu.c:638 chan-menu.c:663 chan-menu.c:689 chan-menu.c:721
++msgid "Sort done"
++msgstr "Sortieren beendet"
++
++#: chan-menu.c:698
++msgid "Alpha Down"
++msgstr "Alpha ab"
++
++#: chan-menu.c:698
++msgid "Alpha Up"
++msgstr "Alpha auf"
++
++#: chan-menu.c:698
++msgid "Transp Down"
++msgstr "Transp ab"
++
++#: chan-menu.c:698
++msgid "Transp Up"
++msgstr "Transp auf"
+Index: chanorg-0.0.6/po/fr_FR.po
+===================================================================
+--- chanorg-0.0.6/po/fr_FR.po
++++ chanorg-0.0.6/po/fr_FR.po	2008-04-22 18:37:14.000000000 +0300
+@@ -0,0 +1,112 @@
++# VDR chanorg plugin language source file.
++# Copyright (C) YEAR THE VDR-chanorg'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-chanorg package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-chanorg\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-22 18:37+0300\n"
++"PO-Revision-Date: 2008-04-22 18:37+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-1\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: chan-menu.c:9
++msgid "Move before group"
++msgstr "Deplacer avant groupe"
++
++#: chan-menu.c:21 chan-menu.c:24
++msgid ":End"
++msgstr ":Fin"
++
++#: chan-menu.c:98
++msgid "Select Group for"
++msgstr "Choix du groupe pour"
++
++#: chan-menu.c:155 chan-menu.c:165
++msgid "Group"
++msgstr "Groupe"
++
++#: chan-menu.c:180
++msgid "Name"
++msgstr "Nom"
++
++#: chan-menu.c:181
++msgid "Number"
++msgstr "Numero"
++
++#: chan-menu.c:217
++msgid "Channels Organizer"
++msgstr "Organisateur Chaines"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Add Group"
++msgstr "Creer Groupe"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Affect"
++msgstr "Affecter"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Del Group"
++msgstr "Suppr Groupe"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Edit Group"
++msgstr "Modif Groupe"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Move"
++msgstr "Deplacer"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Sort Group"
++msgstr "Tri Group"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Zap"
++msgstr "Zap"
++
++#: chan-menu.c:559
++msgid "Apply Changes?"
++msgstr "Appliquer les changements?"
++
++#: chan-menu.c:629
++msgid "After"
++msgstr "Apres"
++
++#: chan-menu.c:629
++msgid "Before"
++msgstr "Avant"
++
++#: chan-menu.c:629
++msgid "Cancel"
++msgstr "Annuler"
++
++#: chan-menu.c:636 chan-menu.c:661 chan-menu.c:687 chan-menu.c:719
++msgid "Sorting"
++msgstr "Tri en cours"
++
++#: chan-menu.c:638 chan-menu.c:663 chan-menu.c:689 chan-menu.c:721
++msgid "Sort done"
++msgstr "Tri termine"
++
++#: chan-menu.c:698
++msgid "Alpha Down"
++msgstr "Alpha Dec"
++
++#: chan-menu.c:698
++msgid "Alpha Up"
++msgstr "Alpha Croiss"
++
++#: chan-menu.c:698
++msgid "Transp Down"
++msgstr "Transp Dec"
++
++#: chan-menu.c:698
++msgid "Transp Up"
++msgstr "Transp Croiss"
+Index: chanorg-0.0.6/po/it_IT.po
+===================================================================
+--- chanorg-0.0.6/po/it_IT.po
++++ chanorg-0.0.6/po/it_IT.po	2008-04-22 18:37:14.000000000 +0300
+@@ -0,0 +1,112 @@
++# VDR chanorg plugin language source file.
++# Copyright (C) YEAR THE VDR-chanorg'S COPYRIGHT HOLDER
++# This file is distributed under the same license as the VDR-chanorg package.
++# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
++#
++msgid ""
++msgstr ""
++"Project-Id-Version: VDR-chanorg\n"
++"Report-Msgid-Bugs-To: http://qa.mandriva.com/\n"
++"POT-Creation-Date: 2008-04-22 18:37+0300\n"
++"PO-Revision-Date: 2008-04-22 18:37+0300\n"
++"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
++"Language-Team: <vdr@linuxtv.org>\n"
++"MIME-Version: 1.0\n"
++"Content-Type: text/plain; charset=ISO-8859-15\n"
++"Content-Transfer-Encoding: 8bit\n"
++
++#: chan-menu.c:9
++msgid "Move before group"
++msgstr "Muovi in su il gruppo"
++
++#: chan-menu.c:21 chan-menu.c:24
++msgid ":End"
++msgstr ":Fine"
++
++#: chan-menu.c:98
++msgid "Select Group for"
++msgstr "Seleziona grp"
++
++#: chan-menu.c:155 chan-menu.c:165
++msgid "Group"
++msgstr "Gruppo"
++
++#: chan-menu.c:180
++msgid "Name"
++msgstr "Nome"
++
++#: chan-menu.c:181
++msgid "Number"
++msgstr "Numero"
++
++#: chan-menu.c:217
++msgid "Channels Organizer"
++msgstr "Organizza Canali"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Add Group"
++msgstr "Aggiungi grp"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Affect"
++msgstr ""
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Del Group"
++msgstr "Cancella grp"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Edit Group"
++msgstr "Modifica grp"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Move"
++msgstr "Muovi"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Sort Group"
++msgstr "Ordina grp"
++
++#: chan-menu.c:453 chan-menu.c:598
++msgid "Zap"
++msgstr "Vedi canale"
++
++#: chan-menu.c:559
++msgid "Apply Changes?"
++msgstr "Applica cambiamenti?"
++
++#: chan-menu.c:629
++msgid "After"
++msgstr "In giu'"
++
++#: chan-menu.c:629
++msgid "Before"
++msgstr "In su"
++
++#: chan-menu.c:629
++msgid "Cancel"
++msgstr "Cancella"
++
++#: chan-menu.c:636 chan-menu.c:661 chan-menu.c:687 chan-menu.c:719
++msgid "Sorting"
++msgstr "Ordinamento"
++
++#: chan-menu.c:638 chan-menu.c:663 chan-menu.c:689 chan-menu.c:721
++msgid "Sort done"
++msgstr "Ordinamento completato"
++
++#: chan-menu.c:698
++msgid "Alpha Down"
++msgstr "Alpha giu'"
++
++#: chan-menu.c:698
++msgid "Alpha Up"
++msgstr "Alpha su"
++
++#: chan-menu.c:698
++msgid "Transp Down"
++msgstr "Transp giu'"
++
++#: chan-menu.c:698
++msgid "Transp Up"
++msgstr "Transp su"
