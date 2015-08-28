@@ -6,7 +6,7 @@
 Summary:	VDR plugin: Channels Organizer
 Name:		%name
 Version:	%version
-Release:	18
+Release:	19
 Group:		Video
 License:	GPL
 URL:		http://www.freewebs.com/sadhome/
